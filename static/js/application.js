@@ -16,7 +16,12 @@ function write(msg) {
 
 function onInOpen(x) {
   trace("X", "In Channel opened");
-  write("inbox.open");
+}
+
+function onOutOpen(x) {
+  trace("X", "Out channel opened");
+  write("WebSockets open");
+
   checkpoint = performance.now();
   for (var i = 0; i < messages; ++i) {
     sendMessage('/message', i.toString());
@@ -24,11 +29,6 @@ function onInOpen(x) {
   write(messages.toString() + " XHRs");
   watchdog = setTimeout(terminate, 10000);
   checkpoint = performance.now();
-}
-
-function onOutOpen(x) {
-  trace("X", "Out Channel opened");
-  write("outbox.open");
 }
 
 function onMessage(m) {
