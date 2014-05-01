@@ -5,6 +5,7 @@ var checkpoint;
 var messages = 16; //{{ messages }};
 var received = 0;
 var watchdog;
+var a = 1;
 function trace(char, msg) {
   console.log(char + "(" + ((performance.now() - start) / 1000).toFixed(3) + "):" + msg);
 }
@@ -49,15 +50,18 @@ openChannel = function() {
 }
 
 sendMessage = function(path, opt_param) {
-  /*var xhr = new XMLHttpRequest();
-  if (opt_param) {
-    path += '?m=';
-    path += opt_param;
-  }
-  xhr.open('POST', path, true);
   trace("S", opt_param);
-  xhr.send();*/
-  outbox.send(opt_param.toString());
+  if (a) {
+    var xhr = new XMLHttpRequest();
+    if (opt_param) {
+      path += '?m=';
+      path += opt_param;
+    }
+    xhr.open('POST', path, true);
+    xhr.send();
+  } else {
+    outbox.send(opt_param.toString());
+  }
 };
 
 terminate = function() {
