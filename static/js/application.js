@@ -57,7 +57,7 @@ sendMessage = function(path, opt_param) {
   xhr.open('POST', path, true);
   trace("S", opt_param);
   xhr.send();*/
-  outbox.send(opt_param);
+  outbox.send(opt_param.toString());
 };
 
 terminate = function() {
