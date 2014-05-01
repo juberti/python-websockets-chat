@@ -21,32 +21,38 @@ function write(msg) {
 function onOpen(x) {
   trace("X", "Channel opened");
   write("WebSockets open");
-  sendMessages();
+  if (a)
+    sendMessages(true);
 }
 
-function sendMessages() {
-  checkpoint = performance.now();
-  for (var i = 0; i < messages; ++i) {
-    sendMessage('/send', i.toString());
+function sendXHR(path, opt_param) {
+  var xhr = new XMLHttpRequest();
+  if (opt_param) {
+    path += '?m=';
+    path += opt_param;
   }
-  write(messages.toString() + " XHRs");
+  xhr.open('POST', path, true);
+  xhr.send();
+}
+
+function sendXHRMessages() {
+  for (var i = 0; i < messages; ++i) {
+    trace("S", i.toString());
+    sendXHR("/send", i.toString());
+  }
   watchdog = setTimeout(terminate, 10000);
   checkpoint = performance.now();
 }
 
-sendMessage = function(path, opt_param) {
-  trace("S", opt_param);
-  if (a) {
-    var xhr = new XMLHttpRequest();
-    if (opt_param) {
-      path += '?m=';
-      path += opt_param;
-    }
-    xhr.open('POST', path, true);
-    xhr.send();
-  } else {
+function sendWSMessages() {
+  checkpoint = performance.now();
+  for (var i = 0; i < messages; ++i) {
+    trace("S", opt_param);
     inbox.send(opt_param.toString());
   }
+  write(messages.toString() + " XHRs");
+  watchdog = setTimeout(terminate, 10000);
+  checkpoint = performance.now();
 }
 
 function onMessage(m) {
@@ -73,6 +79,8 @@ terminate = function() {
   trace("X", "Initialized, opening channel");
   checkpoint = performance.now();
   openChannel();
+  if (!a)
+    sendXHRMessages();
   //onMessage({data: '{{ initial_message }}'});
 }      
 setTimeout(initialize, 1);
