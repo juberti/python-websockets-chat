@@ -70,7 +70,7 @@ chats.start()
 def hello():
     return render_template('index.html')
 
-@app.route('/message', method="POST")
+@app.route('/message', methods=["POST"])
 def send():
     redis.publish(REDIS_CHAN, "test")
 
