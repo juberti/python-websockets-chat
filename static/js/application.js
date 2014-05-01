@@ -1,29 +1,71 @@
-var inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
-var outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
+var start = performance.now();
+var inbox;
+var outbox;
+var checkpoint;
+var messages = 16; //{{ messages }};
+var received = 0;
+var watchdog;
+function trace(char, msg) {
+  console.log(char + "(" + ((performance.now() - start) / 1000).toFixed(3) + "):" + msg);
+}
+function write(msg) {
+  var p = document.createElement("p");
+  p.innerHTML = msg + ": " + (performance.now() - checkpoint).toFixed(0) + " ms"
+  document.body.appendChild(p);
+}
 
-inbox.onmessage = function(message) {
-  var data = JSON.parse(message.data);
-  $("#chat-text").append("<div class='panel panel-default'><div class='panel-heading'>" + $('<span/>').text(data.handle).html() + "</div><div class='panel-body'>" + $('<span/>').text(data.text).html() + "</div></div>");
-  $("#chat-text").stop().animate({
-    scrollTop: $('#chat-text')[0].scrollHeight
-  }, 800);
+function onInOpen(x) {
+  trace("X", "In Channel opened");
+  write("inbox.open");
+  checkpoint = performance.now();
+  for (var i = 0; i < messages; ++i) {
+    sendMessage('/message', i.toString());
+  }
+  write(messages.toString() + " XHRs");
+  watchdog = setTimeout(terminate, 10000);
+  checkpoint = performance.now();
+}
+
+function onOutOpen(x) {
+  trace("X", "Out Channel opened");
+  write("outbox.open");
+}
+
+function onMessage(m) {
+  trace("R", m.data);
+  if (++received == messages) {
+    write(messages.toString() + " channel messages received");
+    clearTimeout(watchdog);
+  }
+}
+
+openChannel = function() {
+  trace("X", "Creating sockets");
+  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
+  outbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
+}
+
+sendMessage = function(path, opt_param) {
+  /*var xhr = new XMLHttpRequest();
+  if (opt_param) {
+    path += '?m=';
+    path += opt_param;
+  }
+  xhr.open('POST', path, true);
+  trace("S", opt_param);
+  xhr.send();*/
+  outbox.send(opt_param);
 };
 
-inbox.onclose = function(){
-    console.log('inbox closed');
-    this.inbox = new WebSocket(inbox.url);
+terminate = function() {
+  trace("X", "Shutting down");
+  write(received.toString() + " out of " + messages + " messages received");
+}
 
-};
-
-outbox.onclose = function(){
-    console.log('outbox closed');
-    this.outbox = new WebSocket(outbox.url);
-};
-
-$("#input-form").on("submit", function(event) {
-  event.preventDefault();
-  var handle = $("#input-handle")[0].value;
-  var text   = $("#input-text")[0].value;
-  outbox.send(JSON.stringify({ handle: handle, text: text }));
-  $("#input-text")[0].value = "";
-});
+ initialize = function() {
+  trace("X", "Initialized, opening channel");
+  checkpoint = performance.now();
+  openChannel();
+  //onMessage({data: '{{ initial_message }}'});
+}      
+setTimeout(initialize, 1);
