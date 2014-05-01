@@ -42,8 +42,8 @@ function onMessage(m) {
 
 openChannel = function() {
   trace("X", "Creating sockets");
-  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
-  outbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
+  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
+  outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
   inbox.onmessage = onMessage;
   inbox.onopen = onInOpen;
   outbox.onopen = onOutOpen;
