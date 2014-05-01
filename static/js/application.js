@@ -29,7 +29,7 @@ function onOutOpen(x) {
   sendMessages();
 }
 
-function sendMessages() {}
+function sendMessages() {
   checkpoint = performance.now();
   for (var i = 0; i < messages; ++i) {
     sendMessage('/message', i.toString());
