@@ -70,12 +70,20 @@ chats.start()
 def hello():
     return render_template('index.html')
 
-@app.route('/message', methods=["POST"])
+@app.route('/poll')
+def poll():
+    ret = []
+    for data in chats.__iter_data():
+        ret.append(data)
+    return str(ret)
+
+@app.route('/send', methods=["POST"])
 def send():
     redis.publish(REDIS_CHAN, "test")
 
-@sockets.route('/submit')
+@sockets.route('/ws')
 def inbox(ws):
+    chats.register(ws)
     """Receives incoming chat messages, inserts them into Redis."""
     while ws.socket is not None:
         # Sleep to prevent *contstant* context-switches.
@@ -84,16 +92,8 @@ def inbox(ws):
             app.logger.info(u'Inserting message: {}'.format(message))
             redis.publish(REDIS_CHAN, message)
             message = ws.receive()
-        gevent.sleep(0.1)
-
-@sockets.route('/receive')
-def outbox(ws):
-    """Sends outgoing chat messages, via `ChatBackend`."""
-    chats.register(ws)
-
-    while ws.socket is not None:
-        # Context switch while `ChatBackend.start` is running in the background.
         gevent.sleep()
+
 
 
 

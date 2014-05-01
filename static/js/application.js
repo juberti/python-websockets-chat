@@ -1,3 +1,7 @@
+// #1: WS/WS. Wait for WS to open, then WS.send and WS.onmessage
+// #2: XHR/WS. XHR immediately, then WS.onmessage
+// #3: XHR/poll. Continuously poll for msgs
+
 var start = performance.now();
 var inbox;
 var outbox;
@@ -15,16 +19,8 @@ function write(msg) {
   document.body.appendChild(p);
 }
 
-function onInOpen(x) {
-  trace("X", "In Channel opened");
-  if (a) {
-    write("WebSocket open");
-    sendMessages();
-  }
-}
-
-function onOutOpen(x) {
-  trace("X", "Out channel opened");
+function onOpen(x) {
+  trace("X", "Channel opened");
   write("WebSockets open");
   sendMessages();
 }
@@ -32,7 +28,7 @@ function onOutOpen(x) {
 function sendMessages() {
   checkpoint = performance.now();
   for (var i = 0; i < messages; ++i) {
-    sendMessage('/message', i.toString());
+    sendMessage('/send', i.toString());
   }
   write(messages.toString() + " XHRs");
   watchdog = setTimeout(terminate, 10000);
@@ -63,14 +59,10 @@ function onMessage(m) {
 }
 
 openChannel = function() {
-  trace("X", "Creating sockets");
-  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
-  if (!a) {
-    outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
-    outbox.onopen = onOutOpen;
-  }
+  trace("X", "Creating socket");
+  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/ws");
   inbox.onmessage = onMessage;
-  inbox.onopen = onInOpen;
+  inbox.onopen = onOpen;
 }
 
 terminate = function() {
