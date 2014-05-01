@@ -23,8 +23,6 @@ app.debug = 'DEBUG' in os.environ
 
 sockets = Sockets(app)
 redis = redis.from_url(REDIS_URL)
-mysock = None
-
 
 
 class ChatBackend(object):
@@ -74,11 +72,10 @@ def hello():
 
 @app.route('/message')
 def send():
-    chats.send(mysock, "test")
+    redis.publish(REDIS_CHAN, "test")
 
 @sockets.route('/submit')
 def inbox(ws):
-    mysock = ws
     """Receives incoming chat messages, inserts them into Redis."""
     while ws.socket is not None:
         # Sleep to prevent *contstant* context-switches.

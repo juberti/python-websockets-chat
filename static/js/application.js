@@ -5,7 +5,7 @@ var checkpoint;
 var messages = 16; //{{ messages }};
 var received = 0;
 var watchdog;
-var a = 1;
+var a = 0;
 function trace(char, msg) {
   console.log(char + "(" + ((performance.now() - start) / 1000).toFixed(3) + "):" + msg);
 }
@@ -17,12 +17,19 @@ function write(msg) {
 
 function onInOpen(x) {
   trace("X", "In Channel opened");
+  if (a) {
+    write("WebSocket open");
+    sendMessages();
+  }
 }
 
 function onOutOpen(x) {
   trace("X", "Out channel opened");
   write("WebSockets open");
+  sendMessages();
+}
 
+function sendMessages() {}
   checkpoint = performance.now();
   for (var i = 0; i < messages; ++i) {
     sendMessage('/message', i.toString());
@@ -30,23 +37,6 @@ function onOutOpen(x) {
   write(messages.toString() + " XHRs");
   watchdog = setTimeout(terminate, 10000);
   checkpoint = performance.now();
-}
-
-function onMessage(m) {
-  trace("R", m.data);
-  if (++received == messages) {
-    write(messages.toString() + " channel messages received");
-    clearTimeout(watchdog);
-  }
-}
-
-openChannel = function() {
-  trace("X", "Creating sockets");
-  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
-  outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
-  inbox.onmessage = onMessage;
-  inbox.onopen = onInOpen;
-  outbox.onopen = onOutOpen;
 }
 
 sendMessage = function(path, opt_param) {
@@ -62,7 +52,26 @@ sendMessage = function(path, opt_param) {
   } else {
     outbox.send(opt_param.toString());
   }
-};
+}
+
+function onMessage(m) {
+  trace("R", m.data);
+  if (++received == messages) {
+    write(messages.toString() + " channel messages received");
+    clearTimeout(watchdog);
+  }
+}
+
+openChannel = function() {
+  trace("X", "Creating sockets");
+  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/receive");
+  if (!a) {
+    outbox = new ReconnectingWebSocket("ws://"+ location.host + "/submit");
+    outbox.onopen = onOutOpen;
+  }
+  inbox.onmessage = onMessage;
+  inbox.onopen = onInOpen;
+}
 
 terminate = function() {
   trace("X", "Shutting down");
