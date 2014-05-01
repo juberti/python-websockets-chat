@@ -4,7 +4,6 @@
 
 var start = performance.now();
 var inbox;
-var outbox;
 var checkpoint;
 var messages = 16; //{{ messages }};
 var received = 0;
@@ -46,7 +45,7 @@ sendMessage = function(path, opt_param) {
     xhr.open('POST', path, true);
     xhr.send();
   } else {
-    outbox.send(opt_param.toString());
+    inbox.send(opt_param.toString());
   }
 }
 
