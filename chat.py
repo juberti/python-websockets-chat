@@ -79,12 +79,12 @@ def inbox(ws):
     """Receives incoming chat messages, inserts them into Redis."""
     while ws.socket is not None:
         # Sleep to prevent *contstant* context-switches.
-        gevent.sleep(0.1)
         message = ws.receive()
-
-        if message:
+        while message:
             app.logger.info(u'Inserting message: {}'.format(message))
             redis.publish(REDIS_CHAN, message)
+            message = ws.receive()
+        gevent.sleep(0.1)
 
 @sockets.route('/receive')
 def outbox(ws):
