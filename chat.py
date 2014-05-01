@@ -79,7 +79,8 @@ def poll():
 
 @app.route('/send', methods=["POST"])
 def send():
-    redis.publish(REDIS_CHAN, "test")
+    x = 5
+    #redis.publish(REDIS_CHAN, "test")
 
 @sockets.route('/ws')
 def inbox(ws):

@@ -65,7 +65,7 @@ function onMessage(m) {
 
 openChannel = function() {
   trace("X", "Creating socket");
-  inbox = new ReconnectingWebSocket("ws://"+ location.host + "/ws");
+  inbox = new WebSocket("ws://"+ location.host + "/ws");
   inbox.onmessage = onMessage;
   inbox.onopen = onOpen;
 }
